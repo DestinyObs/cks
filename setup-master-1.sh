@@ -60,7 +60,7 @@ echo "=== [5/7] kubeadm init ==="
 sudo kubeadm init \
   --apiserver-advertise-address=${MASTER_IP} \
   --control-plane-endpoint=${MASTER_IP}:6443 \
-  --pod-network-cidr=$POD_CIDR | tee ~/kubeadm-init.log
+  --pod-network-cidr=${POD_CIDR} | tee ~/kubeadm-init.log
 
 echo "=== [6/7] kubeconfig ==="
 mkdir -p $HOME/.kube
