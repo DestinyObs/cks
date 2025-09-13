@@ -14,9 +14,13 @@ for port in $K8S_PORTS; do
     sudo kill -9 $pids || true
   fi
 done
-# Also try to stop kubelet and containerd if running
 sudo systemctl stop kubelet || true
 sudo systemctl stop containerd || true
+
+# === [0.1/7] Clean up previous Kubernetes manifests and etcd data ===
+echo "Cleaning up old Kubernetes manifests and etcd data..."
+sudo rm -f /etc/kubernetes/manifests/*.yaml || true
+sudo rm -rf /var/lib/etcd/* || true
 
 # === [0.5/7] Disable swap (required by Kubernetes) ===
 echo "Disabling swap..."
