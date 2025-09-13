@@ -4,10 +4,23 @@ set -euo pipefail
 MASTER_IP="192.168.32.8"
 POD_CIDR="10.244.0.0/16"
 
-# === [0/7] Disable swap (required by Kubernetes) ===
+# === [0/7] Stop any running Kubernetes processes and free ports ===
+echo "Stopping any running Kubernetes processes and freeing ports..."
+K8S_PORTS="6443 10259 10257 2379 2380"
+for port in $K8S_PORTS; do
+  pids=$(sudo lsof -ti :$port || true)
+  if [ -n "$pids" ]; then
+    echo "Killing processes on port $port: $pids"
+    sudo kill -9 $pids || true
+  fi
+done
+# Also try to stop kubelet and containerd if running
+sudo systemctl stop kubelet || true
+sudo systemctl stop containerd || true
+
+# === [0.5/7] Disable swap (required by Kubernetes) ===
 echo "Disabling swap..."
 sudo swapoff -a
-# Comment out swap in /etc/fstab if present
 sudo sed -i.bak '/\sswap\s/ s/^/#/' /etc/fstab
 
 # === [1/7] Loading kernel modules ===
@@ -36,7 +49,6 @@ sudo apt install -y containerd
 echo "Configuring containerd..."
 sudo mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml > /dev/null
-# Enable systemd cgroup driver
 sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
 sudo systemctl restart containerd
 sudo systemctl enable containerd
