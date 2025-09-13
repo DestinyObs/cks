@@ -17,7 +17,7 @@ net.bridge.bridge-nf-call-ip6tables =#!/bin/bash
 set -euo pipefail
 
 MASTER_IP="192.168.32.8"
-POD_CIDR="192.168.0.0/16"
+POD_CIDR="10.244.0.0/16"
 
 echo "=== [1/7] Kernel modules ==="
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
@@ -58,8 +58,8 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 echo "=== [5/7] kubeadm init ==="
 sudo kubeadm init \
-  --apiserver-advertise-address=$MASTER_IP \
-  --control-plane-endpoint=$MASTER_IP:6443 \
+  --apiserver-advertise-address=${MASTER_IP} \
+  --control-plane-endpoint=${MASTER_IP}:6443 \
   --pod-network-cidr=$POD_CIDR | tee ~/kubeadm-init.log
 
 echo "=== [6/7] kubeconfig ==="
@@ -112,7 +112,7 @@ echo "=== [5/7] Initializing Kubernetes control plane ==="
 # Using Calico pod CIDR
 sudo kubeadm init \
   --apiserver-advertise-address=192.168.32.8 \
-  --pod-network-cidr=192.168.0.0/16 \
+  --pod-network-cidr=10.244.0.0/16 \
   --control-plane-endpoint=192.168.32.8:6443 | tee ~/kubeadm-init.log
 
 echo "=== [6/7] Setting up kubeconfig for current user ==="
