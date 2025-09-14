@@ -106,6 +106,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # === [4/4] Joining as control plane ===
 echo "=== [4/4] Joining as control plane ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token xb1qny.kpsz0d3jo96cja1o --discovery-token-ca-cert-hash sha256:6802d95fa383320c0df78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff --control-plane"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token dm96hj.fssfne3xtg4jp5bj --discovery-token-ca-cert-hash sha256:6802d95fa383320c0df78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff --control-plane"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD

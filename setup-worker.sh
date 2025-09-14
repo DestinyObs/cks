@@ -35,10 +35,13 @@ sudo chown -R root:root /etc/kubernetes/pki
 sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
 sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
 
-# === Fix containerd pause image warning (optional, recommended) ===
-echo "Setting containerd pause image to 3.9..."
-sudo sed -i 's#sandbox_image = ".*"#sandbox_image = "registry.k8s.io/pause:3.9"#' /etc/containerd/config.toml || true
-sudo systemctl restart containerd || true
+
+# Remove conflicting pause:3.8 image if present (prevents version warning)
+if sudo ctr -n k8s.io images list | grep -q 'pause:3.8'; then
+  echo "Removing old pause:3.8 image to avoid version conflict..."
+  sudo ctr -n k8s.io images rm registry.k8s.io/pause:3.8 || true
+fi
+echo "Checked for and removed pause:3.8 image if present."
 
 MASTER_IP="192.168.32.8"
 K8S_PORTS="6443 10259 10257 2379 2380"
@@ -106,6 +109,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # === [4/4] Joining as worker ===
 echo "=== [4/4] Joining as worker ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token 59pzjg.2r00aetsah3wctjb --discovery-token-ca-cert-hash sha256:6802d95fa383320c0df78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token dm96hj.fssfne3xtg4jp5bj --discovery-token-ca-cert-hash sha256:6802d95fa383320c0df78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
