@@ -6,8 +6,7 @@ MASTER_IP="${MASTER_IP:-192.168.32.8}"   # fallback if not exported
 POD_CIDR="${POD_CIDR:-10.244.0.0/16}"
 
 # Prompt for all master hostnames/IPs (comma-separated)
-read -rp "Enter all master hostnames and IPs (comma-separated, e.g. cks-master-1,cks-master-2,192.168.32.8,192.168.32.9): " MASTER_SANS
-MASTER_SANS_CLEANED=$(echo "$MASTER_SANS" | sed 's/,\+/,/g' | sed 's/^,//;s/,$//')
+MASTER_SANS_CLEANED="cks-master-1,cks-master-2,192.168.32.8,192.168.32.9"
 
 # === [0/7] Stop any running Kubernetes processes and free ports ===
 echo "Stopping any running Kubernetes processes and freeing ports..."
