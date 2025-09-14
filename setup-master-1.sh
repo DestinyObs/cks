@@ -24,9 +24,13 @@ sudo systemctl stop kubelet || true
 sudo systemctl stop containerd || true
 
 # === [0.1/7] Clean up previous Kubernetes manifests and etcd data ===
-echo "Cleaning up old Kubernetes manifests and etcd data..."
-sudo rm -f /etc/kubernetes/manifests/*.yaml || true
-sudo rm -rf /var/lib/etcd/* || true
+echo "Aggressively cleaning up all old Kubernetes, etcd, CNI, and kubelet state..."
+sudo systemctl stop kubelet || true
+sudo systemctl stop containerd || true
+sudo rm -rf /etc/kubernetes || true
+sudo rm -rf /var/lib/etcd || true
+sudo rm -rf /var/lib/cni || true
+sudo rm -rf /var/lib/kubelet || true
 
 # === [0.5/7] Disable swap (required by Kubernetes) ===
 echo "Disabling swap..."
