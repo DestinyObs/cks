@@ -26,7 +26,11 @@ export AWS_DEFAULT_REGION="$AWS_REGION"
 # === Create S3 bucket if it doesn't exist ===
 echo "Creating S3 bucket: $BUCKET_NAME (if not exists)"
 if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
-  aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
+  if [ "$AWS_REGION" = "us-east-1" ]; then
+    aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION"
+  else
+    aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
+  fi
 fi
 
 # === Archive PKI directories ===

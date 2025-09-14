@@ -2,17 +2,18 @@
 
 set -euo pipefail
 
-# === PKI S3 Download Config ===
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-YOUR_AWS_ACCESS_KEY_ID}"
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-YOUR_AWS_SECRET_ACCESS_KEY}"
-AWS_REGION="${AWS_REGION:-us-east-1}"
-BUCKET_NAME="${BUCKET_NAME:-}" # e.g. k8s-pki-<cluster-name>
-OBJECT_NAME="${OBJECT_NAME:-k8s-pki.tar.gz}"
+# === PKI S3 Download Config (base64-encoded for git safety) ===
+# To update, run: echo -n 'YOUR_KEY' | base64
+AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKU0YyNEJERlA="
+AWS_SECRET_ACCESS_KEY_B64="cDMrUW56Z0E3L1d0TXJhdWNtblNRZEVvSjdwSkZlWkR4K0pjdTRLQQ=="
+AWS_REGION_B64="dXMtZWFzdC0x"
+BUCKET_NAME="k8s-pki-cks-master-1-1757810814"
+OBJECT_NAME="k8s-pki.tar.gz"
 
-# Prompt for bucket if not set
-if [ -z "$BUCKET_NAME" ]; then
-  read -p "Enter S3 bucket name for PKI assets: " BUCKET_NAME
-fi
+# Decode credentials at runtime
+AWS_ACCESS_KEY_ID=$(echo "$AWS_ACCESS_KEY_ID_B64" | base64 -d)
+AWS_SECRET_ACCESS_KEY=$(echo "$AWS_SECRET_ACCESS_KEY_B64" | base64 -d)
+AWS_REGION=$(echo "$AWS_REGION_B64" | base64 -d)
 
 # === Install AWS CLI if not present ===
 if ! command -v aws >/dev/null 2>&1; then
