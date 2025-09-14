@@ -33,13 +33,14 @@ if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
   fi
 fi
 
+
 # === Archive PKI directories ===
 echo "Archiving /etc/kubernetes/pki and /etc/kubernetes/pki/etcd..."
 sudo tar czf /tmp/k8s-pki.tar.gz -C /etc/kubernetes pki
 
-# === Upload to S3 ===
-echo "Uploading archive to S3..."
-aws s3 cp /tmp/k8s-pki.tar.gz s3://$BUCKET_NAME/k8s-pki.tar.gz
+# === Upload to S3 (overwrite always) ===
+echo "Uploading archive to S3 (overwrite if exists)..."
+aws s3 cp /tmp/k8s-pki.tar.gz s3://$BUCKET_NAME/k8s-pki.tar.gz --acl bucket-owner-full-control
 
 echo "Upload complete!"
 echo "S3 bucket: $BUCKET_NAME"

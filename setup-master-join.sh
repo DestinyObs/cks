@@ -29,6 +29,7 @@ export AWS_DEFAULT_REGION="$AWS_REGION"
 echo "Downloading PKI archive from S3..."
 aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
 echo "Extracting PKI to /etc/kubernetes..."
+sudo rm -rf /etc/kubernetes/pki
 sudo mkdir -p /etc/kubernetes/pki
 sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
 sudo chown -R root:root /etc/kubernetes/pki
