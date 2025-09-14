@@ -34,6 +34,13 @@ if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
 fi
 
 
+
+# === Regenerate apiserver cert with all master hostnames/IPs ===
+echo "Regenerating apiserver certificate with all master hostnames and IPs..."
+sudo kubeadm init phase certs apiserver \
+  --apiserver-advertise-address=192.168.32.8 \
+  --apiserver-cert-extra-sans=192.168.32.8,192.168.32.9,cks-master-1,cks-master-2,kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster.local
+
 # === Archive PKI directories ===
 echo "Archiving /etc/kubernetes/pki and /etc/kubernetes/pki/etcd..."
 sudo tar czf /tmp/k8s-pki.tar.gz -C /etc/kubernetes pki

@@ -36,6 +36,10 @@ sudo chown -R root:root /etc/kubernetes/pki
 sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
 sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
 
+# === Remove conflicting pause image (if present) ===
+echo "Removing old pause:3.8 image if present..."
+sudo ctr -n k8s.io images rm registry.k8s.io/pause:3.8 || true
+
 MASTER_IP="192.168.32.8"
 K8S_PORTS="6443 10259 10257 2379 2380"
 

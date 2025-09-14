@@ -28,11 +28,17 @@ export AWS_DEFAULT_REGION="$AWS_REGION"
 echo "Downloading PKI archive from S3..."
 aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
 echo "Extracting PKI to /etc/kubernetes..."
+sudo rm -rf /etc/kubernetes/pki
 sudo mkdir -p /etc/kubernetes/pki
 sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
 sudo chown -R root:root /etc/kubernetes/pki
 sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
 sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
+
+# === Fix containerd pause image warning (optional, recommended) ===
+echo "Setting containerd pause image to 3.9..."
+sudo sed -i 's#sandbox_image = ".*"#sandbox_image = "registry.k8s.io/pause:3.9"#' /etc/containerd/config.toml || true
+sudo systemctl restart containerd || true
 
 MASTER_IP="192.168.32.8"
 K8S_PORTS="6443 10259 10257 2379 2380"
