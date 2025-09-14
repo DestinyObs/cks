@@ -1,6 +1,66 @@
 #!/bin/bash
+
 set -euo pipefail
 
+# === PKI S3 Download Config ===
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-YOUR_AWS_ACCESS_KEY_ID}"
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-YOUR_AWS_SECRET_ACCESS_KEY}"
+AWS_REGION="${AWS_REGION:-us-east-1}"
+BUCKET_NAME="${BUCKET_NAME:-}" # e.g. k8s-pki-<cluster-name>
+OBJECT_NAME="${OBJECT_NAME:-k8s-pki.tar.gz}"
+
+# Prompt for bucket if not set
+if [ -z "$BUCKET_NAME" ]; then
+  read -p "Enter S3 bucket name for PKI assets: " BUCKET_NAME
+fi
+
+# === Install AWS CLI if not present ===
+if ! command -v aws >/dev/null 2>&1; then
+  echo "Installing AWS CLI..."
+  sudo apt-get update && sudo apt-get install -y awscli
+fi
+
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export AWS_DEFAULT_REGION="$AWS_REGION"
+
+# === Download and extract PKI assets ===
+echo "Downloading PKI archive from S3..."
+aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
+echo "Extracting PKI to /etc/kubernetes..."
+sudo mkdir -p /etc/kubernetes/pki
+sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
+sudo chown -R root:root /etc/kubernetes/pki
+sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
+sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
+
+MASTER_IP="192.168.32.8"
+K8S_PORTS="6443 10259 10257 2379 2380"
+
+# === [0/4] Stop any running Kubernetes processes and free ports ===
+echo "Stopping any running Kubernetes processes and freeing ports..."
+for port in $K8S_PORTS; do
+  pids=$(sudo lsof -ti :$port || true)
+  if [ -n "$pids" ]; then
+    echo "Killing processes on port $port: $pids"
+    sudo kill -9 $pids || true
+  fi
+done
+sudo systemctl stop kubelet || true
+sudo systemctl stop containerd || true
+
+# === [0.1/4] Clean up previous Kubernetes manifests and etcd data ===
+echo "Cleaning up old Kubernetes manifests and etcd data..."
+sudo rm -f /etc/kubernetes/manifests/*.yaml || true
+sudo rm -rf /var/lib/etcd || true
+sudo mkdir -p /var/lib/etcd
+
+# === [0.5/4] Disable swap (required by Kubernetes) ===
+echo "Disabling swap..."
+sudo swapoff -a
+sudo sed -i.bak '/\sswap\s/ s/^/#/' /etc/fstab
+
+# === [1/4] Kernel modules ===
 echo "=== [1/4] Kernel modules ==="
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay
@@ -9,6 +69,7 @@ EOF
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
+# === [2/4] Sysctl params ===
 echo "=== [2/4] Sysctl params ==="
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-iptables  = 1
@@ -17,6 +78,7 @@ net.ipv4.ip_forward                 = 1
 EOF
 sudo sysctl --system
 
+# === [3/4] Containerd + K8s ===
 echo "=== [3/4] Containerd + K8s ==="
 sudo apt update -y
 sudo apt install -y containerd apt-transport-https ca-certificates curl gpg
@@ -36,7 +98,8 @@ sudo apt update -y
 sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
+# === [4/4] Joining as control plane ===
 echo "=== [4/4] Joining as control plane ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token mj250.4lhht4370evdss4x --discovery-token-ca-cert-hash sha256:802d95fa383320cdf78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff --control-plane"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token 59pzjg.2r00aetsah3wctjb --discovery-token-ca-cert-hash sha256:6802d95fa383320c0df78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff --control-plane"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
