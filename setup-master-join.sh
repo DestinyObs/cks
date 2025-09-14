@@ -37,4 +37,6 @@ sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
 echo "=== [4/4] Joining as control plane ==="
-echo ">>> Paste the join command from master-1 with --control-plane here <<<"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token mj250.4lhht4370evdss4x --discovery-token-ca-cert-hash sha256:802d95fa383320cdf78721880faa69a4af8bc8bedd28ff0b87aa9e86ba5dff --control-plane"
+echo "Running: $JOIN_CMD"
+sudo $JOIN_CMD
