@@ -1,17 +1,23 @@
 #!/bin/bash
 set -euo pipefail
 
-MASTER_IP="192.168.32.8"
-POD_CIDR="10.244.0.0/16"
+# === CONFIGURATION ===
+MASTER_IP="${MASTER_IP:-192.168.32.8}"   # fallback if not exported
+POD_CIDR="${POD_CIDR:-10.244.0.0/16}"
+
+# Prompt for all master hostnames/IPs (comma-separated)
+read -rp "Enter all master hostnames and IPs (comma-separated, e.g. cks-master-1,cks-master-2,192.168.32.8,192.168.32.9): " MASTER_SANS
+MASTER_SANS_CLEANED=$(echo "$MASTER_SANS" | sed 's/,\+/,/g' | sed 's/^,//;s/,$//')
 
 # === [0/7] Stop any running Kubernetes processes and free ports ===
 echo "Stopping any running Kubernetes processes and freeing ports..."
 K8S_PORTS="6443 10259 10257 2379 2380"
 for port in $K8S_PORTS; do
-  pids=$(sudo lsof -ti :$port || true)
-  if [ -n "$pids" ]; then
-    echo "Killing processes on port $port: $pids"
-    sudo kill -9 $pids || true
+  if pids=$(sudo lsof -ti :"$port" 2>/dev/null); then
+    if [ -n "$pids" ]; then
+      echo "Killing processes on port $port: $pids"
+      sudo kill -9 $pids || true
+    fi
   fi
 done
 sudo systemctl stop kubelet || true
@@ -52,12 +58,12 @@ sudo apt install -y containerd
 
 echo "Configuring containerd..."
 sudo mkdir -p /etc/containerd
-containerd config default | sudo tee /etc/containerd/config.toml > /dev/null
+containerd config default | sudo tee /etc/containerd/config.toml >/dev/null
 sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
 sudo systemctl restart containerd
 sudo systemctl enable containerd
 
-# === [4/7] Installing Kubernetes components (kubeadm, kubelet, kubectl) ===
+# === [4/7] Installing Kubernetes components ===
 echo "Installing Kubernetes components..."
 sudo apt update -y
 sudo apt install -y apt-transport-https ca-certificates curl gpg
@@ -74,15 +80,16 @@ sudo apt-mark hold kubelet kubeadm kubectl
 # === [5/7] Initializing Kubernetes control plane ===
 echo "Initializing Kubernetes control plane..."
 sudo kubeadm init \
-  --apiserver-advertise-address=${MASTER_IP} \
-  --pod-network-cidr=${POD_CIDR} \
-  --control-plane-endpoint=${MASTER_IP}:6443 | tee ~/kubeadm-init.log
+  --apiserver-advertise-address="$MASTER_IP" \
+  --pod-network-cidr="$POD_CIDR" \
+  --control-plane-endpoint="${MASTER_IP}:6443" \
+  --apiserver-cert-extra-sans="$MASTER_SANS_CLEANED" | tee ~/kubeadm-init.log
 
 # === [6/7] Setting up kubeconfig for current user ===
 echo "Setting up kubeconfig..."
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
+mkdir -p "$HOME/.kube"
+sudo cp -i /etc/kubernetes/admin.conf "$HOME/.kube/config"
+sudo chown "$(id -u)":"$(id -g)" "$HOME/.kube/config"
 
 # === [7/7] Deploying Calico CNI ===
 echo "Deploying Calico CNI..."
