@@ -48,15 +48,16 @@ sudo tar czf /tmp/k8s-pki.tar.gz -C /etc/kubernetes pki
 # === Upload to S3 (overwrite always) ===
 echo "Uploading archive to S3 (overwrite if exists)..."
 echo "Uploading individual certs and admin.conf to S3..."
-aws s3 cp /etc/kubernetes/admin.conf s3://$BUCKET_NAME/admin.conf --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/ca.crt s3://$BUCKET_NAME/ca.crt --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/ca.key s3://$BUCKET_NAME/ca.key --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/sa.key s3://$BUCKET_NAME/sa.key --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/sa.pub s3://$BUCKET_NAME/sa.pub --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/front-proxy-ca.crt s3://$BUCKET_NAME/front-proxy-ca.crt --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/front-proxy-ca.key s3://$BUCKET_NAME/front-proxy-ca.key --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/etcd/ca.crt s3://$BUCKET_NAME/etcd-ca.crt --acl bucket-owner-full-control
-aws s3 cp /etc/kubernetes/pki/etcd/ca.key s3://$BUCKET_NAME/etcd-ca.key --acl bucket-owner-full-control
+echo "Uploading individual certs and admin.conf to S3 (with sudo -E to preserve env)..."
+sudo -E aws s3 cp /etc/kubernetes/admin.conf s3://$BUCKET_NAME/admin.conf --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/ca.crt s3://$BUCKET_NAME/ca.crt --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/ca.key s3://$BUCKET_NAME/ca.key --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/sa.key s3://$BUCKET_NAME/sa.key --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/sa.pub s3://$BUCKET_NAME/sa.pub --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/front-proxy-ca.crt s3://$BUCKET_NAME/front-proxy-ca.crt --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/front-proxy-ca.key s3://$BUCKET_NAME/front-proxy-ca.key --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/etcd/ca.crt s3://$BUCKET_NAME/etcd-ca.crt --acl bucket-owner-full-control
+sudo -E aws s3 cp /etc/kubernetes/pki/etcd/ca.key s3://$BUCKET_NAME/etcd-ca.key --acl bucket-owner-full-control
 
 echo "Upload complete!"
 echo "S3 bucket: $BUCKET_NAME"
