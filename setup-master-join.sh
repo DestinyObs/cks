@@ -29,15 +29,15 @@ export AWS_DEFAULT_REGION="$AWS_REGION"
 echo "Downloading individual certs and admin.conf from S3..."
 sudo rm -rf /etc/kubernetes/pki
 sudo mkdir -p /etc/kubernetes/pki/etcd
-aws s3 cp s3://$BUCKET_NAME/admin.conf /etc/kubernetes/admin.conf
-aws s3 cp s3://$BUCKET_NAME/ca.crt /etc/kubernetes/pki/ca.crt
-aws s3 cp s3://$BUCKET_NAME/ca.key /etc/kubernetes/pki/ca.key
-aws s3 cp s3://$BUCKET_NAME/sa.key /etc/kubernetes/pki/sa.key
-aws s3 cp s3://$BUCKET_NAME/sa.pub /etc/kubernetes/pki/sa.pub
-aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.crt /etc/kubernetes/pki/front-proxy-ca.crt
-aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.key /etc/kubernetes/pki/front-proxy-ca.key
-aws s3 cp s3://$BUCKET_NAME/etcd-ca.crt /etc/kubernetes/pki/etcd/ca.crt
-aws s3 cp s3://$BUCKET_NAME/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
+sudo -E aws s3 cp s3://$BUCKET_NAME/admin.conf /etc/kubernetes/admin.conf
+sudo -E aws s3 cp s3://$BUCKET_NAME/ca.crt /etc/kubernetes/pki/ca.crt
+sudo -E aws s3 cp s3://$BUCKET_NAME/ca.key /etc/kubernetes/pki/ca.key
+sudo -E aws s3 cp s3://$BUCKET_NAME/sa.key /etc/kubernetes/pki/sa.key
+sudo -E aws s3 cp s3://$BUCKET_NAME/sa.pub /etc/kubernetes/pki/sa.pub
+sudo -E aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.crt /etc/kubernetes/pki/front-proxy-ca.crt
+sudo -E aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.key /etc/kubernetes/pki/front-proxy-ca.key
+sudo -E aws s3 cp s3://$BUCKET_NAME/etcd-ca.crt /etc/kubernetes/pki/etcd/ca.crt
+sudo -E aws s3 cp s3://$BUCKET_NAME/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
 sudo chown -R root:root /etc/kubernetes/pki
 sudo chmod 600 /etc/kubernetes/pki/*.key || true
 sudo chmod 600 /etc/kubernetes/pki/etcd/*.key || true
