@@ -2,6 +2,24 @@
 
 set -euo pipefail
 
+# === Set hostname for this worker ===
+
+# Prompt for hostname and IP
+if [ -z "${NODE_NAME:-}" ]; then
+  read -rp "Enter desired node hostname (e.g. cks-worker-1): " NODE_NAME
+fi
+if [ -z "${NODE_IP:-}" ]; then
+  read -rp "Enter this node's IP address (e.g. 192.168.32.9): " NODE_IP
+fi
+echo "Setting system hostname to $NODE_NAME..."
+sudo hostnamectl set-hostname "$NODE_NAME"
+
+# Ensure /etc/hosts has correct entry for hostname and IP
+if ! grep -q "$NODE_NAME" /etc/hosts; then
+  echo "$NODE_IP $NODE_NAME" | sudo tee -a /etc/hosts
+fi
+
+
 # # === PKI S3 Download Config ===
 # AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-YOUR_AWS_ACCESS_KEY_ID}"
 # AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-YOUR_AWS_SECRET_ACCESS_KEY}"
@@ -89,6 +107,9 @@ sudo sysctl --system
 
 # === [3/4] Containerd + K8s ===
 echo "=== [3/4] Containerd + K8s ==="
+# Set kubelet to use the system hostname (explicitly)
+sudo sed -i '/^KUBELET_EXTRA_ARGS=/d' /etc/default/kubelet || true
+echo "KUBELET_EXTRA_ARGS=--hostname-override=$(hostname)" | sudo tee -a /etc/default/kubelet
 sudo apt update -y
 sudo apt install -y containerd apt-transport-https ca-certificates curl gpg
 sudo mkdir -p /etc/containerd
