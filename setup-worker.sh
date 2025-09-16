@@ -2,38 +2,38 @@
 
 set -euo pipefail
 
-# === PKI S3 Download Config ===
-AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-YOUR_AWS_ACCESS_KEY_ID}"
-AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-YOUR_AWS_SECRET_ACCESS_KEY}"
-AWS_REGION="${AWS_REGION:-us-east-1}"
-BUCKET_NAME="${BUCKET_NAME:-}" # e.g. k8s-pki-<cluster-name>
-OBJECT_NAME="${OBJECT_NAME:-k8s-pki.tar.gz}"
+# # === PKI S3 Download Config ===
+# AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-YOUR_AWS_ACCESS_KEY_ID}"
+# AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-YOUR_AWS_SECRET_ACCESS_KEY}"
+# AWS_REGION="${AWS_REGION:-us-east-1}"
+# BUCKET_NAME="${BUCKET_NAME:-}" # e.g. k8s-pki-<cluster-name>
+# OBJECT_NAME="${OBJECT_NAME:-k8s-pki.tar.gz}"
 
-# Prompt for bucket if not set
-if [ -z "$BUCKET_NAME" ]; then
-  read -p "Enter S3 bucket name for PKI assets: " BUCKET_NAME
-fi
+# # Prompt for bucket if not set
+# if [ -z "$BUCKET_NAME" ]; then
+#   read -p "Enter S3 bucket name for PKI assets: " BUCKET_NAME
+# fi
 
-# === Install AWS CLI if not present ===
-if ! command -v aws >/dev/null 2>&1; then
-  echo "Installing AWS CLI..."
-  sudo apt-get update && sudo apt-get install -y awscli
-fi
+# # === Install AWS CLI if not present ===
+# if ! command -v aws >/dev/null 2>&1; then
+#   echo "Installing AWS CLI..."
+#   sudo apt-get update && sudo apt-get install -y awscli
+# fi
 
-export AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY
-export AWS_DEFAULT_REGION="$AWS_REGION"
+# export AWS_ACCESS_KEY_ID
+# export AWS_SECRET_ACCESS_KEY
+# export AWS_DEFAULT_REGION="$AWS_REGION"
 
-# === Download and extract PKI assets ===
-echo "Downloading PKI archive from S3..."
-aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
-echo "Extracting PKI to /etc/kubernetes..."
-sudo rm -rf /etc/kubernetes/pki
-sudo mkdir -p /etc/kubernetes/pki
-sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
-sudo chown -R root:root /etc/kubernetes/pki
-sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
-sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
+# # === Download and extract PKI assets ===
+# echo "Downloading PKI archive from S3..."
+# aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
+# echo "Extracting PKI to /etc/kubernetes..."
+# sudo rm -rf /etc/kubernetes/pki
+# sudo mkdir -p /etc/kubernetes/pki
+# sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
+# sudo chown -R root:root /etc/kubernetes/pki
+# sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
+# sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
 
 
 # Remove conflicting pause:3.8 image if present (prevents version warning)
@@ -109,6 +109,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # === [4/4] Joining as worker ===
 echo "=== [4/4] Joining as worker ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token uy4vbd.odfj3oxj26fhn7rf --discovery-token-ca-cert-hash sha256:778367572927637eb4ddd9cfb6b9025828c6bc2249e7fb1fb0eb027ff6d9fc4"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token bxfxcs.nvziti6pma35135e --discovery-token-ca-cert-hash sha256:778367572927637eb4ddd9cfb6b9025828c60bc2249e7fb1fb0eb027ff6d9fc4"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
