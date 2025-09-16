@@ -6,7 +6,7 @@ set -euo pipefail
 AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKU0YyNEJERlA="
 AWS_SECRET_ACCESS_KEY_B64="cDMrUW56Z0E3L1d0TXJhdWNtblNRZEVvSjdwSkZlWkR4K0pjdTRLQQ=="
 AWS_REGION_B64="dXMtZWFzdC0x"
-BUCKET_NAME="k8s-pki-$(hostname | tr '[:upper:]' '[:lower:]')-$(date +%s)"
+BUCKET_NAME="cks-k8s-pki"
 
 # Decode credentials at runtime
 AWS_ACCESS_KEY_ID=$(echo "$AWS_ACCESS_KEY_ID_B64" | base64 -d)
@@ -47,7 +47,16 @@ sudo tar czf /tmp/k8s-pki.tar.gz -C /etc/kubernetes pki
 
 # === Upload to S3 (overwrite always) ===
 echo "Uploading archive to S3 (overwrite if exists)..."
-aws s3 cp /tmp/k8s-pki.tar.gz s3://$BUCKET_NAME/k8s-pki.tar.gz --acl bucket-owner-full-control
+echo "Uploading individual certs and admin.conf to S3..."
+aws s3 cp /etc/kubernetes/admin.conf s3://$BUCKET_NAME/admin.conf --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/ca.crt s3://$BUCKET_NAME/ca.crt --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/ca.key s3://$BUCKET_NAME/ca.key --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/sa.key s3://$BUCKET_NAME/sa.key --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/sa.pub s3://$BUCKET_NAME/sa.pub --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/front-proxy-ca.crt s3://$BUCKET_NAME/front-proxy-ca.crt --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/front-proxy-ca.key s3://$BUCKET_NAME/front-proxy-ca.key --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/etcd/ca.crt s3://$BUCKET_NAME/etcd-ca.crt --acl bucket-owner-full-control
+aws s3 cp /etc/kubernetes/pki/etcd/ca.key s3://$BUCKET_NAME/etcd-ca.key --acl bucket-owner-full-control
 
 echo "Upload complete!"
 echo "S3 bucket: $BUCKET_NAME"

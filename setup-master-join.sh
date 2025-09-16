@@ -7,7 +7,7 @@ set -euo pipefail
 AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKU0YyNEJERlA="
 AWS_SECRET_ACCESS_KEY_B64="cDMrUW56Z0E3L1d0TXJhdWNtblNRZEVvSjdwSkZlWkR4K0pjdTRLQQ=="
 AWS_REGION_B64="dXMtZWFzdC0x"
-BUCKET_NAME="k8s-pki-cks-master-1-1757814178"
+BUCKET_NAME="cks-k8s-pki"
 OBJECT_NAME="k8s-pki.tar.gz"
 
 # Decode credentials at runtime
@@ -25,16 +25,23 @@ export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
-# === Download and extract PKI assets ===
-echo "Downloading PKI archive from S3..."
-aws s3 cp "s3://$BUCKET_NAME/$OBJECT_NAME" /tmp/k8s-pki.tar.gz
-echo "Extracting PKI to /etc/kubernetes..."
+# === Download individual certs and admin.conf from S3 ===
+echo "Downloading individual certs and admin.conf from S3..."
 sudo rm -rf /etc/kubernetes/pki
-sudo mkdir -p /etc/kubernetes/pki
-sudo tar xzf /tmp/k8s-pki.tar.gz -C /etc/kubernetes
+sudo mkdir -p /etc/kubernetes/pki/etcd
+aws s3 cp s3://$BUCKET_NAME/admin.conf /etc/kubernetes/admin.conf
+aws s3 cp s3://$BUCKET_NAME/ca.crt /etc/kubernetes/pki/ca.crt
+aws s3 cp s3://$BUCKET_NAME/ca.key /etc/kubernetes/pki/ca.key
+aws s3 cp s3://$BUCKET_NAME/sa.key /etc/kubernetes/pki/sa.key
+aws s3 cp s3://$BUCKET_NAME/sa.pub /etc/kubernetes/pki/sa.pub
+aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.crt /etc/kubernetes/pki/front-proxy-ca.crt
+aws s3 cp s3://$BUCKET_NAME/front-proxy-ca.key /etc/kubernetes/pki/front-proxy-ca.key
+aws s3 cp s3://$BUCKET_NAME/etcd-ca.crt /etc/kubernetes/pki/etcd/ca.crt
+aws s3 cp s3://$BUCKET_NAME/etcd-ca.key /etc/kubernetes/pki/etcd/ca.key
 sudo chown -R root:root /etc/kubernetes/pki
-sudo chmod -R 600 /etc/kubernetes/pki/*.key || true
-sudo chmod -R 700 /etc/kubernetes/pki/etcd || true
+sudo chmod 600 /etc/kubernetes/pki/*.key || true
+sudo chmod 600 /etc/kubernetes/pki/etcd/*.key || true
+sudo chmod 700 /etc/kubernetes/pki/etcd || true
 
 # === Remove conflicting pause image (if present) ===
 echo "Removing old pause:3.8 image if present..."
@@ -106,6 +113,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # === [4/4] Joining as control plane ===
 echo "=== [4/4] Joining as control plane ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token rz8ln4.eny6w666cdatp5gb --discovery-token-ca-cert-hash sha256:2a3213664342b2f63d3da030867bff5139106faf864d2cf79d5d2f75edfc43b9 --control-plane"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token bxfxcs.nvziti6pma35135e --discovery-token-ca-cert-hash sha256:778367572927637eb4ddd9cfb6b9025828c60bc2249e7fb1fb0eb027ff6d9fc4 --control-plane"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
