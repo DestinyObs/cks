@@ -1,3 +1,94 @@
+# ---
+# Static IP & Hostname Setup (All Nodes)
+
+## Setting a Static IP with Netplan
+
+**1. Edit your netplan config:**
+
+```sh
+sudo nano /etc/netplan/50-cloud-init.yaml
+```
+
+**2. Example config (replace with your node's IP):**
+
+```
+network:
+  version: 2
+  ethernets:
+    ens18:
+      dhcp4: no
+      addresses:
+        - 192.168.32.8/24   # <-- Set this node's static IP
+      routes:
+        - to: default
+          via: 192.168.32.1   # <-- Your gateway
+      nameservers:
+        addresses:
+          - 172.16.40.3   # <-- Your internal DNS server
+          - 8.8.8.8
+          - 1.1.1.1
+> **Note:** Be sure to include your internal DNS server (`172.16.40.3`) in the `nameservers` list for proper cluster and internal name resolution.
+```
+
+**3. Test config before applying:**
+
+```sh
+sudo netplan generate   # Check syntax
+sudo netplan try        # Safe test (auto-revert if broken)
+```
+
+**4. Apply permanently:**
+
+```sh
+sudo netplan apply
+```
+
+**5. Verify:**
+
+```sh
+ip a
+ip route
+```
+
+**6. Confirm your gateway:**
+
+```sh
+ip route | grep default
+# Should show: default via 192.168.32.1 ...
+```
+
+---
+
+## /etc/hosts Template (All Nodes)
+
+Paste this into `/etc/hosts` on every node (adjust <this-node-hostname> for each):
+
+```
+127.0.0.1   localhost
+127.0.1.1   <this-node-hostname>
+
+192.168.32.8   cksm1
+192.168.32.9   cksm2
+192.168.32.10  cksw1
+192.168.32.3   cksw2
+192.168.32.6   cksw3
+192.168.32.7   cksw4
+```
+
+---
+
+## Node Inventory & Credentials
+
+| Node         | Hostname | IP             | Username | Password      |
+|--------------|----------|----------------|----------|--------------|
+| Master 1     | cksm1    | 192.168.32.8   | CKSM1    | cybacadcloud |
+| Master 2     | cksm2    | 192.168.32.9   | CKSM2    | cybacadcloud |
+| Worker 1     | cksw1    | 192.168.32.10  | CKSW1    | cybacadcloud |
+| Worker 2     | cksw2    | 192.168.32.3   | CKSW2    | cybacadcloud |
+| Worker 3     | cksw3    | 192.168.32.6   | CKSW3    | cybacadcloud |
+| Worker 4     | cksw4    | 192.168.32.7   | CKSW4    | cybacadcloud |
+
+---
 # Cybercloud Kubernetes Service (CKS) — Engineering Project README
 
 ## 1. Project Overview

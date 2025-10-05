@@ -6,7 +6,20 @@ MASTER_IP="${MASTER_IP:-192.168.32.8}"   # fallback if not exported
 POD_CIDR="${POD_CIDR:-10.244.0.0/16}"
 
 # Prompt for all master hostnames/IPs (comma-separated)
-MASTER_SANS_CLEANED="cks-master-1,cks-master-2,192.168.32.8,192.168.32.9"
+MASTER_SANS_CLEANED="cksm1,cksm2,192.168.32.8,192.168.32.9"
+# === [0.05/7] Write /etc/hosts for all cluster nodes (idempotent) ===
+echo "Writing /etc/hosts with all cluster node hostnames..."
+sudo tee /etc/hosts >/dev/null <<EOF
+127.0.0.1   localhost
+127.0.1.1   cksm1
+
+192.168.32.8   cksm1
+192.168.32.9   cksm2
+192.168.32.10  cksw1
+192.168.32.3   cksw2
+192.168.32.6   cksw3
+192.168.32.7   cksw4
+EOF
 
 # === [0/9] Stop any running Kubernetes processes and free ports ===
 echo "Stopping any running Kubernetes processes and freeing ports..."
