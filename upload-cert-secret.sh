@@ -7,7 +7,7 @@ set -euo pipefail
 AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 AWS_REGION="us-east-1"
-BUCKET_NAME="cks-k8s-pki"
+BUCKET_NAME="mycks-k8s-pki"
 
 # === Install AWS CLI if not present ===
 if ! command -v aws >/dev/null 2>&1; then
