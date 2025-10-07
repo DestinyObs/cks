@@ -15,7 +15,7 @@ sudo tee /etc/hosts >/dev/null <<EOF
 
 192.168.32.8   cksm1
 192.168.32.9   cksm2
-192.168.32.10  cksw1
+192.168.32.5   cksw1
 192.168.32.3   cksw2
 192.168.32.6   cksw3
 192.168.32.7   cksw4

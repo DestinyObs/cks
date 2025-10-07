@@ -18,16 +18,14 @@ network:
     ens18:
       dhcp4: no
       addresses:
-        - 192.168.32.8/24   # <-- Set this node's static IP
+        - 192.168.32.8/24
       routes:
         - to: default
-          via: 192.168.32.1   # <-- Your gateway
+          via: 192.168.32.1
       nameservers:
         addresses:
-          - 172.16.40.3   # <-- Your internal DNS server
+          - 172.16.40.3 
           - 8.8.8.8
-          - 1.1.1.1
-> **Note:** Be sure to include your internal DNS server (`172.16.40.3`) in the `nameservers` list for proper cluster and internal name resolution.
 ```
 
 **3. Test config before applying:**
@@ -69,7 +67,7 @@ Paste this into `/etc/hosts` on every node (adjust <this-node-hostname> for each
 
 192.168.32.8   cksm1
 192.168.32.9   cksm2
-192.168.32.10  cksw1
+192.168.32.5   cksw1
 192.168.32.3   cksw2
 192.168.32.6   cksw3
 192.168.32.7   cksw4
@@ -83,7 +81,7 @@ Paste this into `/etc/hosts` on every node (adjust <this-node-hostname> for each
 |--------------|----------|----------------|----------|--------------|
 | Master 1     | cksm1    | 192.168.32.8   | CKSM1    | cybacadcloud |
 | Master 2     | cksm2    | 192.168.32.9   | CKSM2    | cybacadcloud |
-| Worker 1     | cksw1    | 192.168.32.10  | CKSW1    | cybacadcloud |
+| Worker 1     | cksw1    | 192.168.32.5  | CKSW1    | cybacadcloud |
 | Worker 2     | cksw2    | 192.168.32.3   | CKSW2    | cybacadcloud |
 | Worker 3     | cksw3    | 192.168.32.6   | CKSW3    | cybacadcloud |
 | Worker 4     | cksw4    | 192.168.32.7   | CKSW4    | cybacadcloud |
