@@ -2,16 +2,12 @@
 set -euo pipefail
 
 # === User must fill these in (base64-encoded for git safety) ===
-# To update, run: echo -n 'YOUR_KEY' | base64
-AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKVkVYVEg2T00="
-AWS_SECRET_ACCESS_KEY_B64="OEE2akJCcFAwcURKS0taRWNGMnp5L3pUTW9XVHhMb3ptK0tyQkpLeg=="
-AWS_REGION_B64="dXMtZWFzdC0x"
-BUCKET_NAME="cks-k8s-pki"
 
-# Decode credentials at runtime
-AWS_ACCESS_KEY_ID=$(echo "$AWS_ACCESS_KEY_ID_B64" | base64 -d)
-AWS_SECRET_ACCESS_KEY=$(echo "$AWS_SECRET_ACCESS_KEY_B64" | base64 -d)
-AWS_REGION=$(echo "$AWS_REGION_B64" | base64 -d)
+# === User must fill these in (raw values) ===
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+AWS_REGION="us-east-1"
+BUCKET_NAME="cks-k8s-pki"
 
 # === Install AWS CLI if not present ===
 if ! command -v aws >/dev/null 2>&1; then
