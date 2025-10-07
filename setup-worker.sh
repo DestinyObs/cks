@@ -130,6 +130,6 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 # === [4/4] Joining as worker ===
 echo "=== [4/4] Joining as worker ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token bxfxcs.nvziti6pma35135e --discovery-token-ca-cert-hash sha256:778367572927637eb4ddd9cfb6b9025828c60bc2249e7fb1fb0eb027ff6d9fc4"
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token rjqu9e.czrli4njw33exw8x --discovery-token-ca-cert-hash sha256:b5c78b2e78f3e0d405dda0eae625ee0495d8d295fe0b0aff3d58a3142f835810"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
