@@ -3,17 +3,13 @@
 set -euo pipefail
 
 # === PKI S3 Download Config (base64-encoded for git safety) ===
-# To update, run: echo -n 'YOUR_KEY' | base64
-AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKU0YyNEJERlA="
-AWS_SECRET_ACCESS_KEY_B64="cDMrUW56Z0E3L1d0TXJhdWNtblNRZEVvSjdwSkZlWkR4K0pjdTRLQQ=="
-AWS_REGION_B64="dXMtZWFzdC0x"
-BUCKET_NAME="cks-k8s-pki"
-OBJECT_NAME="k8s-pki.tar.gz"
 
-# Decode credentials at runtime
-AWS_ACCESS_KEY_ID=$(echo "$AWS_ACCESS_KEY_ID_B64" | base64 -d)
-AWS_SECRET_ACCESS_KEY=$(echo "$AWS_SECRET_ACCESS_KEY_B64" | base64 -d)
-AWS_REGION=$(echo "$AWS_REGION_B64" | base64 -d)
+# === PKI S3 Download Config (raw values) ===
+AWS_ACCESS_KEY_ID=""
+AWS_SECRET_ACCESS_KEY=""
+AWS_REGION="us-east-1"
+BUCKET_NAME="mycks-k8s-pki"
+OBJECT_NAME="k8s-pki.tar.gz"
 
 # === Install AWS CLI if not present ===
 if ! command -v aws >/dev/null 2>&1; then
@@ -116,3 +112,29 @@ echo "=== [4/4] Joining as control plane ==="
 JOIN_CMD="kubeadm join 192.168.32.8:6443 --token rjqu9e.czrli4njw33exw8x --discovery-token-ca-cert-hash sha256:b5c78b2e78f3e0d405dda0eae625ee0495d8d295fe0b0aff3d58a3142f835810 --control-plane"
 echo "Running: $JOIN_CMD"
 sudo $JOIN_CMD
+echo "Applying hardening steps for master node..."
+# Ensure sysctl settings are loaded on boot
+sudo sysctl --system
+
+# Ensure kernel modules are loaded on boot
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# Ensure swap is permanently disabled
+sudo sed -i.bak '/\sswap\s/ s/^/#/' /etc/fstab
+sudo swapoff -a
+
+# Set strict permissions on PKI files
+sudo chmod 600 /etc/kubernetes/pki/*.key || true
+sudo chmod 600 /etc/kubernetes/pki/etcd/*.key || true
+sudo chmod 700 /etc/kubernetes/pki/etcd || true
+
+# Enable and start kubelet and containerd
+sudo systemctl enable kubelet
+sudo systemctl start kubelet
+sudo systemctl enable containerd
+sudo systemctl start containerd
