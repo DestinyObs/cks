@@ -3,8 +3,8 @@ set -euo pipefail
 
 # === User must fill these in (base64-encoded for git safety) ===
 # To update, run: echo -n 'YOUR_KEY' | base64
-AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKU0YyNEJERlA="
-AWS_SECRET_ACCESS_KEY_B64="cDMrUW56Z0E3L1d0TXJhdWNtblNRZEVvSjdwSkZlWkR4K0pjdTRLQQ=="
+AWS_ACCESS_KEY_ID_B64="QUtJQTVETEY1TVJKVkVYVEg2T00="
+AWS_SECRET_ACCESS_KEY_B64="OEE2akJCcFAwcURKS0taRWNGMnp5L3pUTW9XVHhMb3ptK0tyQkpLeg=="
 AWS_REGION_B64="dXMtZWFzdC0x"
 BUCKET_NAME="cks-k8s-pki"
 
@@ -19,7 +19,8 @@ if ! command -v aws >/dev/null 2>&1; then
   sudo apt-get update && sudo apt-get install -y awscli
 fi
 
-export AWS_ACCESS_KEY_ID
+export AWS_ACCESS_
+KEY_ID
 export AWS_SECRET_ACCESS_KEY
 export AWS_DEFAULT_REGION="$AWS_REGION"
 
@@ -32,7 +33,6 @@ if ! aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
     aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
   fi
 fi
-
 
 
 # === Regenerate apiserver cert with all master hostnames/IPs ===
