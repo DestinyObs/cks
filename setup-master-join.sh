@@ -66,8 +66,8 @@ sudo mkdir -p /var/lib/etcd
 
 # === [0.5/4] Disable swap (required by Kubernetes) ===
 echo "Disabling swap..."
-sudo swapoff -a
 sudo sed -i.bak '/\sswap\s/ s/^/#/' /etc/fstab
+sudo swapoff -a
 
 # === [1/4] Kernel modules ===
 echo "=== [1/4] Kernel modules ==="
@@ -107,34 +107,20 @@ sudo apt update -y
 sudo apt install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 
-# === [4/4] Joining as control plane ===
-echo "=== [4/4] Joining as control plane ==="
-JOIN_CMD="kubeadm join 192.168.32.8:6443 --token rjqu9e.czrli4njw33exw8x --discovery-token-ca-cert-hash sha256:b5c78b2e78f3e0d405dda0eae625ee0495d8d295fe0b0aff3d58a3142f835810 --control-plane"
-echo "Running: $JOIN_CMD"
-sudo $JOIN_CMD
+# === Harden master node before joining ===
 echo "Applying hardening steps for master node..."
-# Ensure sysctl settings are loaded on boot
-sudo sysctl --system
-
-# Ensure kernel modules are loaded on boot
-cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
-overlay
-br_netfilter
-EOF
-sudo modprobe overlay
-sudo modprobe br_netfilter
-
-# Ensure swap is permanently disabled
-sudo sed -i.bak '/\sswap\s/ s/^/#/' /etc/fstab
-sudo swapoff -a
-
 # Set strict permissions on PKI files
 sudo chmod 600 /etc/kubernetes/pki/*.key || true
 sudo chmod 600 /etc/kubernetes/pki/etcd/*.key || true
 sudo chmod 700 /etc/kubernetes/pki/etcd || true
-
 # Enable and start kubelet and containerd
 sudo systemctl enable kubelet
 sudo systemctl start kubelet
 sudo systemctl enable containerd
 sudo systemctl start containerd
+
+# === [4/4] Joining as control plane ===
+echo "=== [4/4] Joining as control plane ==="
+JOIN_CMD="kubeadm join 192.168.32.8:6443 --token rjqu9e.czrli4njw33exw8x --discovery-token-ca-cert-hash sha256:b5c78b2e78f3e0d405dda0eae625ee0495d8d295fe0b0aff3d58a3142f835810 --control-plane"
+echo "Running: $JOIN_CMD"
+sudo $JOIN_CMD
